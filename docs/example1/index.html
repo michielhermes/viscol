@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visualizing colloids: Example 1</title>
+
+  <!-- Javascript files for webgl -->
+  <script type="text/javascript" src="../external/gl-matrix.js"></script>
+  <script type="text/javascript" src="../external/twgl-full.min.js"></script>
+  <script type="text/javascript" src="../viscol.js"></script>
+
+  <!-- highlight.js -->
+  <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/default.min.css">
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+
+<body onload="start();">
+<!-- Content -->
+<div class="container">
+
+<!--=========================================================================-->
+<h2 class=page-header>Example: Simple static viewer</h2>
+<p>
+It is possible to display a non interactive view of by creating a canvas
+and passing the canvas to the viewer. The viewer can then be used to load
+a configuration file. In this case from the local path on 
+the server. 
+<br><canvas id="webgl-canvas" width="300" height="300"></canvas><br>
+
+You need to load the javascript libraries in the html file:
+<pre><code class="html">
+&ltscript type="text/javascript" src="gl-matrix.js"> &lt/script>
+&ltscript type="text/javascript" src="twgl-full.min.js"> &lt/script>
+&ltscript type="text/javascript" src="viscol.js"> &lt/script>
+</code></pre>
+And you need to create a canvas that will be used to display the visualization:
+<pre><code class="html">
+&ltbody onload="start();">
+&ltcanvas id="webgl-canvas" width="300" height="300"> &lt/canvas>
+</code></pre>
+This javascript code needs to run when the web page is loaded so we attach it to the 
+onload event of the body. 
+To load a snapshot we place one in <code>snaps/snap_1.dat</code> and load it
+once the viewer is created.
+We then set a fixed rotation speed to provide a changing view of the snapshot. 
+<pre><code class="js">
+&ltscript type="text/javascript">
+function start(){
+  var viewer=new viscol(document.getElementById("webgl-canvas")); 
+  viewer.loadFilesFromServer('snap_1.dat');
+  viewer.toggleDrawBox(false);
+  viewer.setZoom(1.2);
+  viewer.setSpeed([1,1]);
+}
+&lt/script>
+</code></pre>
+</p>
+  </div> <!-- Container -->
+
+<script type="text/javascript">
+function start(){
+  var viewer=new viscol(document.getElementById("webgl-canvas"),"static"); 
+  viewer.loadFilesFromServer('snap_1.dat');
+  viewer.toggleDrawBox(false);
+  viewer.setZoom(1.2);
+  viewer.setSpeed([1,1]);
+}
+</script>
+
+</body>
+
+</html>

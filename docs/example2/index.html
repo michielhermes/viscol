@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visualizing colloids: Example 1</title>
+
+  <!-- Javascript files for webgl -->
+  <script type="text/javascript" src="../external/gl-matrix.js"></script>
+  <script type="text/javascript" src="../external/twgl-full.min.js"></script>
+  <script type="text/javascript" src="../viscol.js"></script>
+
+  <!-- highlight.js -->
+  <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/default.min.css">
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+
+<body onload="start();">
+<!-- Content -->
+<div class="container">
+
+<!--=========================================================================-->
+<h2 class=page-header>Example: Simple interactive viewer</h2>
+<p>
+If you want the user to be able to manipulate the view a default interface
+is provided that will allow the view to be rotated and zoomed.
+The mouse (and touch events) can be used to rotate the view and the arrow
+keys can be used to set a constant rotation speed.
+<br><canvas id="webgl-canvas" width="300" height="300"></canvas><br>
+The html code is the same as in <a href="../example1/index.html">example 1</a> and the javascript code becomes: 
+<pre><code class="js">
+function start(){
+  var viewer=new viscol(document.getElementById("webgl-canvas"),"fixed"); 
+  viewer.loadFilesFromServer('./snap_1.dat');
+  viewer.toggleDrawBox(false);
+  viewer.setZoom(1.2);
+  viewer.setSpeed([1,1]);
+}
+</code></pre>
+The "fixed" means that the frame can not be changed but the view can.
+the mouse and keyboard can be used to rotate and zoom in on the configuration. 
+It is not possible to load any of the more
+advanced functions that allow for example the loading of a dragged and dropped 
+configuration file or the selection of individual particles. 
+</p>
+
+<h2 class=page-header> Interactive html input elements </h2>
+<p>
+It is possible to create more advanced views by butting html elements on the page to manupulate 
+the visualisation. In this case the top particles are not drown allowing for a view of the internal 
+structure. A html range ellement is used to set the height to which the particles are drawn. 
+<br><canvas id="webgl-canvas_2" width="300" height="300"></canvas><br>
+<input type="range" oninput="viewer2.setSliceDepth(this.value)" min="-0.9" max="0.9" value="0" step="0.01" style="width:300px;">
+<pre><code class="js">
+  viewer2=new viscol(document.getElementById("webgl-canvas_2"),"static");
+  viewer2.loadFilesFromServer('./snap_1.dat');
+  viewer2.toggleDrawBox(false);
+  viewer2.setZoom(1.2);
+  viewer2.toggleSlice(true);
+  viewer2.setSpeed([1,1]);
+</code></pre>
+<pre><code class="html">
+&ltinput type="range" oninput="viewer2.setSliceDepth(this.value)" min="-0.9" max="0.9" value="0" step="0.01">
+</code></pre>
+</p>
+
+<!--=========================================================================-->
+
+<script type="text/javascript">
+var viewer2; //global so that the range allement can access it
+
+function start(){
+  var viewer=new viscol(document.getElementById("webgl-canvas"),"fixed"); 
+  viewer.loadFilesFromServer('./snap_1.dat');
+  viewer.toggleDrawBox(false);
+  viewer.setZoom(1.2);
+  viewer.setSpeed([1,1]);
+
+  viewer2=new viscol(document.getElementById("webgl-canvas_2"),"static");
+  viewer2.loadFilesFromServer('./snap_1.dat');
+  viewer2.toggleDrawBox(false);
+  viewer2.setZoom(1.2);
+  viewer2.toggleSlice(true);
+  viewer2.setSpeed([1,1]);
+}
+</script>
+
+<!--=========================================================================-->
+</div> <!-- Container -->
+
+</body>
+
+</html>
