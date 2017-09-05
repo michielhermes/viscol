@@ -11,7 +11,7 @@ is easily extendible to other particle shapes.
 
 ## Download ##
 
-To start you can download the source from [here](/michielhermes/viscol/raw/master/docs/viscol.js) or clone the complere repository including examples and documentation.
+To start you can download the source from [here](/https://github.com/michielhermes/viscol/raw/master/docs/viscol.js) or clone the complere repository including examples and documentation.
 
 ## Documentation ##
 
