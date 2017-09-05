@@ -9,6 +9,10 @@ Viscol is an online tool to visualize colloidal particles in 3D in a browser. It
 3D configurations of particles. Different particles shapes can be displayed such as spheres, cubes and rods and it
 is easily extendible to other particle shapes. 
 
+## Download ##
+
+To start you can download the source from [here](/raw/master/docs/viscol.js) or clone the complere repository including examples and documentation.
+
 ## Documentation ##
 
 There is a set of examples that demonstrates some possible uses of this project.
