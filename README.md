@@ -1,6 +1,6 @@
 # Visualizing colloids, using webgl.
 
-![example](doc/example.png)
+![example](docs/example.png)
 
 An example of cubic paricles in spherical confinement. 
 
