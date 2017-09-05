@@ -15,6 +15,4 @@ To start you can download the source from [here](https://github.com/michielherme
 
 ## Documentation ##
 
-There is a set of examples that demonstrates some possible uses of this project.
-
-The full documentation can be found in the [documents folder](https://michielhermes.github.io/viscol/) (under construction).
+The full documentation including examples can be found in the [documents folder](https://michielhermes.github.io/viscol/) (under construction).
