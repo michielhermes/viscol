@@ -21,43 +21,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-function Parameters(par,onChange){
-  var par = par;
-  onChange=onChange;
-  function get(p){
-    return par[p];
-  }
-
-  function set(p){
-//    console.info("Set :",p);
-    var event=[];
-    for (var key in p){
-      if(par[key] != p[key]){
-//        console.info("Setting: ",key,p[key])
-        par[key]=p[key];
-        event.push([key,p[key]]);
-      }
-    }
-    if(typeof onChange === "function" && event.length > 0) onChange(event);
-  }
-
-  function toggle(p){
-    var a={};
-    a[p]=!par[p];
-    set(a);
-  }
-
-  return {
-    get:get,
-    set:set,
-    toggle:toggle,
-  };
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
 function viscol_core(myCanvas,onChange){
   var gl;                        //The webgl context
   var debug=true;                //Debug output to the console
@@ -2454,3 +2417,41 @@ var shaderLinesVs = `
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+function Parameters(par,onChange){
+  var par = par;
+  onChange=onChange;
+  function get(p){
+    return par[p];
+  }
+
+  function set(p){
+//    console.info("Set :",p);
+    var event=[];
+    for (var key in p){
+      if(par[key] != p[key]){
+//        console.info("Setting: ",key,p[key])
+        par[key]=p[key];
+        event.push([key,p[key]]);
+      }
+    }
+    if(typeof onChange === "function" && event.length > 0) onChange(event);
+  }
+
+  function toggle(p){
+    var a={};
+    a[p]=!par[p];
+    set(a);
+  }
+
+  return {
+    get:get,
+    set:set,
+    toggle:toggle,
+  };
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
