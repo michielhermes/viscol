@@ -13,4 +13,4 @@ is easily extendible to other particle shapes.
 
 There is a set of examples that demonstrates some possible uses of this project.
 
-The full documentation can be found in the [documents folder](docs) (under construction).
+The full documentation can be found in the [documents folder](https://michielhermes.github.io/viscol/) (under construction).
