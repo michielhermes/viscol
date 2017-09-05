@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visualizing colloids</title>
+
+</head>
+
+
+<body>
+  <!-- Content -->
+  <div class="container">
+
+<!--=========================================================================-->
+<h1> Documentation </h1>
+<p>The project is split over 3 objects. The core object viscol_core contains the core
+functions used to display frames and particles. The second object viscol is used to 
+handle user input and to load frames and particles into the core object. The
+third object is only used to provide different particle shapes that can be loaded
+into the core object and can be used to load particle shapes from wavefront 
+.obj files.</p> 
+
+<p> 
+TODO: finish documentation.
+</p>
+
+<h3 class=page-header id=examples>Function reference viscol</h3>
+Parameters:
+<ul>
+  <li>xspeed</li>
+  <li>yspeed</li>
+  <li>hideR</li>
+  <li>hideLayers</li>
+  <li>sliceDepth</li>
+  <li>slice</li>
+  <li>play</li>
+  <li>playDelay</li>
+</ul>
+
+Functions:
+<ul>
+  <li>loadLocalFiles</li>
+  <li>clearAllFrames</li>
+  <li>clearCurrentFrame</li>
+  <li>toggleHideLayers</li>
+  <li>hideLayers</li>
+  <li>loadFilesFromServer</li>
+  <li>getKeyHelp</li>
+  <li>toggleDrawBox</li>
+  <li>setZoom</li>
+  <li>setSpeed</li>
+  <li>incSpeed</li>
+  <li>togglePlay</li>
+  <li>setPlayDelay</li>
+  <li>toggleFrameTitle</li>
+  <li>toggleDrawFPS</li>
+  <li>zoomIn</li>
+  <li>rotate90</li>
+  <li>resetView</li>
+  <li>prevFrame</li>
+  <li>nextFrame</li>
+  <li>setFrame</li>
+  <li>setSliceDepth</li>
+  <li>incSliceDepth</li>
+  <li>toggleSlice</li>
+
+  <li>selectAll</li>
+  <li>unselectAll</li>
+  <li>invertSelection</li>
+  <li>unhideAll</li>
+  <li>hideSelected</li>
+
+  <li>captureMovie</li>
+  <li>capturePng</li>
+</ul>
+
+<h3 class=page-header id=examples>Function reference viscol_core</h3>
+Parameters:
+<ul>
+  <li>drawFrameTitle</li>
+  <li>drawFPS:false</li>
+  <li>scaleParticles</li>
+  <li>currentFrame</li>
+  <li>numFrames</li>
+  <li>zoom</li>
+  <li>slice</li>
+  <li>sliceDepth</li>
+  <li>hideR</li>
+  <li>hideLayers</li>
+  <li>animateCall</li>
+  <li>parameterCallback</li>
+  <li>loadText</li>
+  <li>sceneRotationMatrix</li>
+  <li>shift</li>
+</ul>
+
+Functions:
+<ul>
+  <li>addShape</li>
+  <li>setParameter</li>
+  <li>getParameter</li>
+  <li>addFrame</li>
+  <li>clearCurrentFrame</li>
+  <li>clearAllFrames</li>
+  <li>selectParticle</li>
+</ul>
+
+Objects:
+<ul>
+  <li>particle</li>
+  <li>frame</li>
+</ul>
+
+Arrays:
+<ul>
+  <li>visible</li>
+  <li>selected</li>
+  <li>frames</li>
+</ul>
+
+<h3 class=page-header id=examples>Function reference myShapes</h3>
+
+TODO
+<!--=========================================================================-->
+
+</body>
+
+</html>
