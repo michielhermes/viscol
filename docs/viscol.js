@@ -721,7 +721,7 @@ function viscol_core(myCanvas,onChange){
 ////////////////////////////////////////////////////////////////////////////////
 
 function viscol(myCanvas,type,callback){
-  var colorTable=[[0.8,0.8,0.8],[0.0,0.8,0.8],[0.8,0.8,0.0],[0.8,0.0,0.8],[0.8,0.0,0],[0.0,0.8,0.0],[0.0,0.0,0.8]];
+  var colorTable=[[0.8,0.8,0.8],[0.0,0.8,0.8],[0.8,0.0,0.8],[0.8,0.8,0.0],[0.8,0.0,0],[0.0,0.8,0.0],[0.0,0.0,0.8]];
   var vertexShapes = new myShapes(6);
   var shapes = {};
   var viscol= new viscol_core(myCanvas,parameterChangeEvent);
@@ -751,7 +751,8 @@ function viscol(myCanvas,type,callback){
     if(i==0) return part.color; //bounding box is not selectable
     while(selected.length <= i) selected.push(false);
     if (selected[i])
-      return [0.9,0.9,0.9];
+      //return [1-colorTable[0][0],1-colorTable[0][1],1-colorTable[0][2]];
+      return [0.6*colorTable[0][0],0.6*colorTable[0][1],0.6*colorTable[0][2]];
     else
       return part.color;
   }
@@ -786,14 +787,22 @@ function viscol(myCanvas,type,callback){
   function selectByColor(step){
     var cf = viscol.parameters.get("currentFrame");
     var part=viscol.frames[cf].particles;
-    for(var i=0;i<part.length;i++){
-      if(part[i].color == colorTable[hideColor])
-        selected[i]=true;
-      else 
-        selected[i]=false;
+    var found=false;
+    var count=0;
+    while(!found && count <colorTable.length){
+      for(var i=0;i<part.length;i++){
+        if(part[i].color == colorTable[hideColor]) {
+          selected[i]=true;
+          found=true;
+        } else {
+          selected[i]=false;
+        }
+      }
+      hideColor+=step;
+      count++;
+      if(hideColor >= colorTable.length) hideColor=0;
+      if(hideColor < 0) hideColor=colorTable.length-1;
     }
-    hideColor+=step;
-    if(hideColor >= colorTable.length) hideColor=0;
   }
 
   function hideSelected(){
@@ -1013,7 +1022,7 @@ function viscol(myCanvas,type,callback){
             (parseFloat(a[2])-boxCentre[1])*f,
             (parseFloat(a[3])-boxCentre[2])*f]; // position in column 1,2,3
           var size=f; //set defaults
-          var color=colorTable[0]; 
+          var color=colorTable[1]; 
           var mat=null; 
           if(a.length>= 13){
             mat = [parseFloat(a[4])*f ,parseFloat(a[5])*f ,parseFloat(a[6]*f),
@@ -1043,7 +1052,7 @@ function viscol(myCanvas,type,callback){
           var size=f;
           if(a.length>= 4)
             size=parseFloat(a[3])*f; //size in column 3 
-          var color=colorTable[0]; 
+          var color=colorTable[1]; 
           if(a.length >= 5) {
             var cc = parseInt(a[4]) % colorTable.length;
             if(cc>=0 && cc <colorTable.length) color = colorTable[cc];
@@ -1586,6 +1595,7 @@ function viscol(myCanvas,type,callback){
     captureMovie:captureMovie,
     captureMoviePlay:captureMoviePlay,
     capturePng:capturePng,
+    colorTable:colorTable,
   };
 
 }; //END interface
