@@ -21,6 +21,43 @@
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+function Parameters(par,onChange){
+  var par = par;
+  onChange=onChange;
+  function get(p){
+    return par[p];
+  }
+
+  function set(p){
+//    console.info("Set :",p);
+    var event=[];
+    for (var key in p){
+      if(par[key] != p[key]){
+//        console.info("Setting: ",key,p[key])
+        par[key]=p[key];
+        event.push([key,p[key]]);
+      }
+    }
+    if(typeof onChange === "function" && event.length > 0) onChange(event);
+  }
+
+  function toggle(p){
+    var a={};
+    a[p]=!par[p];
+    set(a);
+  }
+
+  return {
+    get:get,
+    set:set,
+    toggle:toggle,
+  };
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 function viscol_core(myCanvas,onChange){
   var gl;                        //The webgl context
   var debug=true;                //Debug output to the console
@@ -684,7 +721,7 @@ function viscol_core(myCanvas,onChange){
 ////////////////////////////////////////////////////////////////////////////////
 
 function viscol(myCanvas,type,callback){
-  var colorTable=[[0.3,0.65,0.65],[0,0.8,0.8],[0,0.8,0],[0.8,0,0],[0.8,0.8,0],[0.8,0,0.8]];
+  var colorTable=[[0.8,0.8,0.8],[0.0,0.8,0.8],[0.8,0.8,0.0],[0.8,0.0,0.8],[0.8,0.0,0],[0.0,0.8,0.0],[0.0,0.0,0.8]];
   var vertexShapes = new myShapes(6);
   var shapes = {};
   var viscol= new viscol_core(myCanvas,parameterChangeEvent);
@@ -841,6 +878,15 @@ function viscol(myCanvas,type,callback){
     capturer.save();
     captureNow=false;
     captureCount=0;
+    parameters.set({play:false});
+    parameters.set({playDelay:10});
+  }
+
+  function captureMoviePlay(){
+    viscol.parameters.set({currentFrame:0});
+    parameters.set({play:true});
+    parameters.set({playDelay:1});
+    captureMovie(viscol.frames.length);
   }
 
   function loadLocalFiles(files){
@@ -1532,15 +1578,14 @@ function viscol(myCanvas,type,callback){
     selectAll:selectAll,
     unselectAll:unselectAll,
     invertSelection:invertSelection,
-    selectByColor:selectByColor,
+//    selectByColor:selectByColor,
     hideHalf:hideHalf,
     unhideAll:unhideAll,
     hideSelected:hideSelected,
 
     captureMovie:captureMovie,
+    captureMoviePlay:captureMoviePlay,
     capturePng:capturePng,
-
-    parameters:parameters,
   };
 
 }; //END interface
@@ -2417,41 +2462,3 @@ var shaderLinesVs = `
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
-function Parameters(par,onChange){
-  var par = par;
-  onChange=onChange;
-  function get(p){
-    return par[p];
-  }
-
-  function set(p){
-//    console.info("Set :",p);
-    var event=[];
-    for (var key in p){
-      if(par[key] != p[key]){
-//        console.info("Setting: ",key,p[key])
-        par[key]=p[key];
-        event.push([key,p[key]]);
-      }
-    }
-    if(typeof onChange === "function" && event.length > 0) onChange(event);
-  }
-
-  function toggle(p){
-    var a={};
-    a[p]=!par[p];
-    set(a);
-  }
-
-  return {
-    get:get,
-    set:set,
-    toggle:toggle,
-  };
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
