@@ -128,7 +128,8 @@ function viscol_core(myCanvas,onChange){
 
   function initGL(canvas) {
     try {
-      gl = twgl.getWebGLContext(canvas);
+      //gl = twgl.getWebGLContext(canvas);
+      gl= canvas.getContext("webgl");
       gl.viewportWidth  = canvas.width;
       gl.viewportHeight = canvas.height;
     } catch (e) { }
@@ -335,9 +336,12 @@ function viscol_core(myCanvas,onChange){
   var texture = {};
   var oldText='';
   function initTexture(text){
-    makeTextCanvas(text,400,100);
-    texture=twgl.createTexture(gl, {src: textCtx.canvas});
-  }  
+    makeTextCanvas(text,512,512);
+    texture=gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D,texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textCtx.canvas);
+    gl.generateMipmap(gl.TEXTURE_2D);
+  }
 
   function drawText(text){
     if(!shapes["TEXT"]) {if(debug) console.info("ERROR Could not find shape TEXT."); return; }
@@ -357,7 +361,7 @@ function viscol_core(myCanvas,onChange){
     if(mytext != ''){
       mvPushMatrix();
       mat4.translate(mvMatrix, [-1.0,1.0,100.0]);
-      mat4.scale(mvMatrix,[2.0*400/gl.canvas.width,2.0*100/gl.canvas.height,1.0]);
+      mat4.scale(mvMatrix,[2.0*textCtx.canvas.width/gl.canvas.width,2.0*textCtx.canvas.height/gl.canvas.height,1.0]);
 
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.uniform1i(shaderPrograms[currentShaderProgram].textureUniform, texture);
