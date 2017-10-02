@@ -769,11 +769,10 @@ function viscol(myCanvas,type,callback){
     if(!visible[i]) return false;
     
     var pos = part.position;
-    var zoom=viscol.parameters.get("zoom");
     var hideR=parameters.get("hideR");
     var cut=pos[0]*pos[0]+pos[1]*pos[1]+pos[2]*pos[2] < hideR*hideR || !parameters.get("hideLayers");
     var mat=viscol.parameters.get("sceneRotationMatrix");
-    var sslice= mat[2]*pos[0] + mat[6]*pos[1]+mat[10]*pos[2] < -parameters.get("sliceDepth")*zoom || !parameters.get("slice");
+    var sslice= mat[2]*pos[0] + mat[6]*pos[1]+mat[10]*pos[2] < -parameters.get("sliceDepth") || !parameters.get("slice");
     return cut && sslice;
   }
 
@@ -900,6 +899,10 @@ function viscol(myCanvas,type,callback){
     parameters.set({play:true});
     parameters.set({playDelay:1});
     captureMovie(viscol.frames.length);
+  }
+
+  function loadFromVar(v){
+    viscol.addFrame(parseTextFile(v.data,v.name));
   }
 
   function loadLocalFiles(files){
@@ -1587,6 +1590,7 @@ function viscol(myCanvas,type,callback){
     setSliceDepth:setSliceDepth,
     incSliceDepth:incSliceDepth,
     toggleSlice:toggleSlice,
+    loadFromVar:loadFromVar,
 
     selectAll:selectAll,
     unselectAll:unselectAll,
@@ -2387,90 +2391,75 @@ var myShapes =  function(lod){
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-var shaderTextVs = `
-  uniform mat4 u_MVMatrix;
-  uniform mat4 u_PMatrix;
-  uniform mat3 u_NMatrix;
+var shaderTextVs = 
+  "uniform mat4 u_MVMatrix;\n" +
+  "uniform mat4 u_PMatrix;\n" +
+  "uniform mat3 u_NMatrix;\n" +
+  "attribute vec3 a_position;\n" +
+  "attribute vec3 a_normal;\n" +
+  "attribute vec2 a_texcoord;\n" +
+  "varying vec2 v_texCoord;\n " +
+  "varying float v_normdot;\n " +
+  "void main() {\n" +
+  "  v_texCoord = a_texcoord;\n" +
+  "  vec3 transformedNormal = normalize(u_NMatrix * a_normal);\n" +
+  "  v_normdot = max(dot(transformedNormal, vec3(0.0,0.0,1.0)), 0.0);\n" +
+  "  gl_Position = u_PMatrix * u_MVMatrix * vec4(a_position, 1.0);\n" +
+  "}\n";
 
-  attribute vec3 a_position;
-  attribute vec3 a_normal;
-  attribute vec2 a_texcoord;
+var shaderTextFs = 
+  "precision mediump float;\n" +
+  "varying vec4 v_position;\n" +
+  "varying vec2 v_texCoord;\n" +
+  "varying float v_normdot;\n" +
+  "uniform sampler2D u_texture;\n" +
+  "void main() {\n" +
+  "  vec4 diffuseColor = texture2D(u_texture, v_texCoord);\n" +
+  "  gl_FragColor = vec4(diffuseColor[0]*v_normdot,diffuseColor[1]*v_normdot,diffuseColor[2]*v_normdot,diffuseColor[3]);\n" +
+  "}\n";
 
-  varying vec2 v_texCoord;
-  varying float v_normdot;
+var shaderVs = 
+  "uniform mat4 u_MVMatrix;\n"+
+  "uniform mat4 u_PMatrix;\n"+
+  "uniform mat3 u_NMatrix;\n"+
+  "uniform vec3 u_Color;\n"+
+  "attribute vec3 a_position;\n"+
+  "attribute vec3 a_normal;\n"+
+  "varying vec3 v_col;\n"+
+  "void main() {\n"+
+  "  gl_Position = u_PMatrix * u_MVMatrix * vec4(a_position, 1.0);\n"+
+  "  vec3 transformedNormal = normalize(u_NMatrix * a_normal);\n"+
+  "  float normdot = max(dot(transformedNormal, vec3(0.0,0.0,1.0)), 0.0);\n"+
+  "  float hp = normdot*normdot;\n"+
+  "  hp=hp*hp*hp*hp;\n"+
+  "  hp=hp*hp*hp*hp;\n"+
+  "  v_col = vec3(1,1,1)*hp*0.4 + u_Color*(0.2+0.8*normdot);\n"+
+  "}\n";
 
-  void main() {
-    v_texCoord = a_texcoord;
+var shaderFs = 
+  "precision mediump float;\n" +
+  "varying vec3 v_col;\n" +
+  "void main() {\n" +
+  "  gl_FragColor = vec4(v_col, 1.0);\n" +
+  "}\n";
 
-    vec3 transformedNormal = normalize(u_NMatrix * a_normal);
-    v_normdot = max(dot(transformedNormal, vec3(0.0,0.0,1.0)), 0.0);
-    gl_Position = u_PMatrix * u_MVMatrix * vec4(a_position, 1.0);
-  }`;
+var shaderLinesFs = 
+  "precision mediump float;\n"+
+  "varying vec4 v_Color;\n"+
+  "void main(void) {\n"+
+  "    gl_FragColor = v_Color;\n"+
+  "}\n";
 
-var shaderTextFs = `
-  precision mediump float;
-
-  varying vec4 v_position;
-  varying vec2 v_texCoord;
-  varying float v_normdot;
-
-  uniform sampler2D u_texture;
-
-  void main() {
-    vec4 diffuseColor = texture2D(u_texture, v_texCoord);
-    gl_FragColor = vec4(diffuseColor[0]*v_normdot,diffuseColor[1]*v_normdot,diffuseColor[2]*v_normdot,diffuseColor[3]);
-  }`;
-
-var shaderVs = `
-  uniform mat4 u_MVMatrix;
-  uniform mat4 u_PMatrix;
-  uniform mat3 u_NMatrix;
-  uniform vec3 u_Color;
-
-  attribute vec3 a_position;
-  attribute vec3 a_normal;
-
-  varying vec3 v_col;
-
-  void main() {
-    gl_Position = u_PMatrix * u_MVMatrix * vec4(a_position, 1.0);
-
-    vec3 transformedNormal = normalize(u_NMatrix * a_normal);
-    float normdot = max(dot(transformedNormal, vec3(0.0,0.0,1.0)), 0.0);
-    float hp = normdot*normdot;                                                                                                                                                                             
-    hp=hp*hp*hp*hp;
-    hp=hp*hp*hp*hp;
-    v_col = vec3(1,1,1)*hp*0.4 + u_Color*(0.2+0.8*normdot);
-  }`;
-
-var shaderFs = `
-  precision mediump float;
-  varying vec3 v_col;
-
-  void main() {
-    gl_FragColor = vec4(v_col, 1.0);
-  }`;
-
-var shaderLinesFs = `
-  precision mediump float;
-  varying vec4 v_Color;
-  void main(void) {
-      gl_FragColor = v_Color;
-  }`;
-
-var shaderLinesVs = `
-  attribute vec3 a_position;
-  uniform mat4 u_MVMatrix;
-  uniform mat4 u_PMatrix;
-  uniform vec3 u_Color;
-  varying vec4 v_Color;
-  void main(void) {
-      gl_Position = u_PMatrix * u_MVMatrix * vec4(a_position, 1.0);
-
-      v_Color = vec4(u_Color,1.0);
-  }`;
-
-
+var shaderLinesVs = 
+  "attribute vec3 a_position;\n" +
+  "uniform mat4 u_MVMatrix;\n" +
+  "uniform mat4 u_PMatrix;\n" +
+  "uniform vec3 u_Color;\n" +
+  "varying vec4 v_Color;\n" +
+  "void main(void) {\n" +
+  "    gl_Position = u_PMatrix * u_MVMatrix * vec4(a_position, 1.0);\n" +
+  "    v_Color = vec4(u_Color,1.0);\n" +
+  "}\n";
 
 
 ////////////////////////////////////////////////////////////////////////////////
