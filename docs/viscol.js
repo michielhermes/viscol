@@ -127,13 +127,18 @@ function viscol_core(myCanvas,onChange){
   }
 
   function initGL(canvas) {
-    try {
-      //gl = twgl.getWebGLContext(canvas);
-      gl= canvas.getContext("webgl");
+    var names = ["webgl", "experimental-webgl"];
+    gl=null;
+    for (var i = 0; i < names.length; i++) {
+      try {
+        gl= canvas.getContext("webgl");
+      } catch (e) { }
+      if (gl) break;
+    }  
+    if (gl) {
       gl.viewportWidth  = canvas.width;
       gl.viewportHeight = canvas.height;
-    } catch (e) { }
-    if (!gl) 
+    } else  
       alert("Could not initialise WebGL");
   }
 
