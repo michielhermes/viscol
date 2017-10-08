@@ -131,7 +131,7 @@ function viscol_core(myCanvas,onChange){
     gl=null;
     for (var i = 0; i < names.length; i++) {
       try {
-        gl= canvas.getContext("webgl");
+        gl= canvas.getContext(names[i]);
       } catch (e) { }
       if (gl) break;
     }  
