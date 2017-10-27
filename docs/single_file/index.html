@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Single html file generation</title>
+</head>
+
+
+<body onload="start();">
+<!--=========================================================================-->
+<h2 class=page-header>Single html file generation</h2>
+<p>
+Title: <input id="title" type="text" name="title" value="Title"><br>
+
+Description: <br>
+<textarea id="description" name="description" rows="5" cols="80">
+Description to appear in the html file.
+</textarea><br>
+
+Coordinate file:<br>
+<input id="file" type="file" name="file"><br>
+
+ <button onclick="genHtml()">
+   Generate html file.</button>
+<!--=========================================================================-->
+
+<script type="text/javascript">
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
+function genHtml(){
+  var title = document.getElementById("title").value;
+  var description = document.getElementById("description").value;
+  var file = document.getElementById("file").files[0];
+  console.info("Clicked: "+title);
+  var html=htmldata.value;
+  html = html.replace("SEARCH_REPLACE_GL_MATRIX",glmatrix.value);
+  html = html.replace("SEARCH_REPLACE_VISCOL",viscol.value);
+  html = html.replace("SEARCH_REPLACE_DESCRIPTION",description);
+  html = html.replace("SEARCH_REPLACE_TITLE",title);
+  console.info(file);
+ 
+  var reader = new FileReader();
+  reader.file=file;
+  reader.onload = (function(theFile) {
+    return function(e){
+      html = html.replace("SEARCH_REPLACE_DATA",e.target.result);
+      html = html.replace("SEARCH_REPLACE_NAME",theFile.name);
+      download(title+".html",html);
+    }
+  })(file);
+  reader.readAsText(file);
+}
+
+var htmldata={value:0};
+var glmatrix={value:0};
+var viscol={value:0};
+
+function loadInputHtml(varname,filename){
+  xhr = new XMLHttpRequest();
+  xhr.overrideMimeType("text/plain"); //to stop de default xml parser                                                                                                                                   
+  xhr.onerror = function () {alert('ERROR: Could not load file: '+filename);}
+  xhr.onload = function () {
+    if(this.responseText != null) {
+      varname.value=this.responseText;
+      console.info("Loaded "+filename+".");
+    } else alert('ERROR: Could not load file: '+filename);
+  }
+  xhr.open("GET", filename, true);
+  xhr.send();
+}
+
+function start(){
+  loadInputHtml(htmldata,'input.html');
+  loadInputHtml(viscol,'../viscol.js');
+  loadInputHtml(glmatrix,'../external/gl-matrix.js');
+}
+</script>
+
+</body>
+
+</html>
