@@ -20,10 +20,17 @@ Description: <br>
 Description to appear in the html file.
 </textarea><br>
 
-Coordinate file:<br>
-<input id="file" type="file" name="file"><br>
+Draw bounding box:
+<input type="checkbox" id="drawBox"><br>
 
- <button onclick="genHtml()">
+Rotate:
+<input type="checkbox" id="rotate"><br>
+
+Coordinate file:
+<input id="file" type="file" name="file"><br>
+<br>
+
+<button onclick="genHtml()">
    Generate html file.</button>
 <!--=========================================================================-->
 
@@ -44,10 +51,16 @@ function genHtml(){
   var file = document.getElementById("file").files[0];
   console.info("Clicked: "+title);
   var html=htmldata.value;
+  var speed=0.5;
+  var drawBox=true;
+  if(!document.getElementById("drawBox").checked) drawBox=false;
+  if(!document.getElementById("rotate").checked) speed=0.0;
   html = html.replace("SEARCH_REPLACE_GL_MATRIX",glmatrix.value);
   html = html.replace("SEARCH_REPLACE_VISCOL",viscol.value);
   html = html.replace("SEARCH_REPLACE_DESCRIPTION",description);
   html = html.replace("SEARCH_REPLACE_TITLE",title);
+  html = html.replace("SEARCH_REPLACE_DB",drawBox);
+  html = html.replace("SEARCH_REPLACE_SPEED",speed);
   console.info(file);
  
   var reader = new FileReader();

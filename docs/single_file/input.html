@@ -132,7 +132,8 @@ var snap = {};
 snap.name=`SEARCH_REPLACE_NAME`;
 snap.data=`SEARCH_REPLACE_DATA`;
 viewer.loadFromVar(snap);
-viewer.setSpeed([0.5,0.5]);
+viewer.setSpeed([SEARCH_REPLACE_SPEED,SEARCH_REPLACE_SPEED]);
+viewer.toggleBoundingBox(SEARCH_REPLACE_BB);
 viewer.toggleSlice(true);
 viewer.setSliceDepth(-1.6);
 }
