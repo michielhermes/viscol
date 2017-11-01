@@ -58,9 +58,9 @@ function genHtml(){
   html = html.replace("SEARCH_REPLACE_GL_MATRIX",glmatrix.value);
   html = html.replace("SEARCH_REPLACE_VISCOL",viscol.value);
   html = html.replace("SEARCH_REPLACE_DESCRIPTION",description);
-  html = html.replace("SEARCH_REPLACE_TITLE",title);
+  html = html.replace(/SEARCH_REPLACE_TITLE/g,title);
   html = html.replace("SEARCH_REPLACE_DB",drawBox);
-  html = html.replace("SEARCH_REPLACE_SPEED",speed);
+  html = html.replace(/SEARCH_REPLACE_SPEED/g,speed);
   console.info(file);
  
   var reader = new FileReader();
