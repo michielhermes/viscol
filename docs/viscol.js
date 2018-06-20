@@ -324,22 +324,12 @@ function viscol_core(myCanvas,onChange){
 
   // Makes an FFT canvas.
   var fftCtx = document.createElement("canvas").getContext("2d");
-  FFT.init(256);
+  if(typeof FFT != 'undefined') FFT.init(256);
   function makeFFTCanvas(width, height) {
     fftCtx.canvas.width  = width;
     fftCtx.canvas.height = height;
     fftCtx.clearRect(0, 0, width, height);
     fftCtx.fillStyle = "rgba(0,0,0,255)";
-//    fftCtx.font = "20px Arial";
-//    fftCtx.textAlign = "left";
-//    fftCtx.textBaseline = "top";
-//    fftCtx.fillText('TEST', 10, 10);
-//    fftCtx.beginPath();
-//    fftCtx.lineWidth="6";
-//    fftCtx.strokeStyle="red";
-//    fftCtx.rect(5,5,width-8,height-8);
-//    fftCtx.stroke();
-
     return fftCtx.canvas;
   }
 
