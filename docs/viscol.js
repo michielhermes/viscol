@@ -324,7 +324,8 @@ function viscol_core(myCanvas,onChange){
 
   // Makes an FFT canvas.
   var fftCtx = document.createElement("canvas").getContext("2d");
-  if(typeof FFT != 'undefined') FFT.init(256);
+  var FFTSIZE=256;
+  if(typeof FFT != 'undefined') FFT.init(FFTSIZE);
   function makeFFTCanvas(width, height) {
     fftCtx.canvas.width  = width;
     fftCtx.canvas.height = height;
@@ -339,6 +340,7 @@ function viscol_core(myCanvas,onChange){
 
   function drawFFTCanvas(width,height,part){
     var mat=parameters.get("sceneRotationMatrix");
+    var zoom=parameters.get("zoom");
     var p = new Float32Array(width*height);
     var im = new Float32Array(width*height);
     for(var i=0;i<width*height;i++) p[i]=0;
@@ -346,8 +348,8 @@ function viscol_core(myCanvas,onChange){
     for(var i=1;i<part.length;i++) if(showParticle(i)) {
       //project coordinates on the plane
       var pos = part[i].position;
-      var x = mat[0]*pos[0] + mat[4]*pos[1] + mat[8]*pos[2];
-      var y = mat[1]*pos[0] + mat[5]*pos[1] + mat[9]*pos[2];
+      var x = mat[0]*pos[0]*zoom + mat[4]*pos[1]*zoom + mat[8]*pos[2]*zoom;
+      var y = mat[1]*pos[0]*zoom + mat[5]*pos[1]*zoom + mat[9]*pos[2]*zoom;
       x=Math.floor(width*0.5+x*width*0.5);
       y=Math.floor(height*0.5+y*height*0.5);
       if(x>=0&&x<width&&y>=0&&y<height) {
@@ -374,8 +376,8 @@ function viscol_core(myCanvas,onChange){
 
   var fftTexture = {};
   function makeFFTTexture(part){
-    makeFFTCanvas(256,256);
-    drawFFTCanvas(256,256,part);
+    makeFFTCanvas(FFTSIZE,FFTSIZE);
+    drawFFTCanvas(FFTSIZE,FFTSIZE,part);
     fftTexture=gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D,fftTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, fftCtx.canvas);
