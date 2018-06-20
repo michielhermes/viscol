@@ -72,6 +72,7 @@ function viscol_core(myCanvas,onChange){
   var parameters= new Parameters({               //All parameters that can be changed and read directly 
     drawFrameTitle:false,
     drawFPS:false,
+    drawFFT:false,
     scaleParticles:1.0,
     currentFrame:0,
     numFrames:0,
@@ -319,6 +320,102 @@ function viscol_core(myCanvas,onChange){
     }
   }
 
+  //---> FFT
+
+  // Makes an FFT canvas.
+  var fftCtx = document.createElement("canvas").getContext("2d");
+  FFT.init(256);
+  function makeFFTCanvas(width, height) {
+    fftCtx.canvas.width  = width;
+    fftCtx.canvas.height = height;
+    fftCtx.clearRect(0, 0, width, height);
+    fftCtx.fillStyle = "rgba(0,0,0,255)";
+//    fftCtx.font = "20px Arial";
+//    fftCtx.textAlign = "left";
+//    fftCtx.textBaseline = "top";
+//    fftCtx.fillText('TEST', 10, 10);
+//    fftCtx.beginPath();
+//    fftCtx.lineWidth="6";
+//    fftCtx.strokeStyle="red";
+//    fftCtx.rect(5,5,width-8,height-8);
+//    fftCtx.stroke();
+
+    return fftCtx.canvas;
+  }
+
+  function sqr(a){
+    return a*a;
+  }
+
+  function drawFFTCanvas(width,height,part){
+    var mat=parameters.get("sceneRotationMatrix");
+    var p = new Float32Array(width*height);
+    var im = new Float32Array(width*height);
+    for(var i=0;i<width*height;i++) p[i]=0;
+    for(var i=0;i<width*height;i++) im[i]=0;
+    for(var i=1;i<part.length;i++) if(showParticle(i)) {
+      //project coordinates on the plane
+      var pos = part[i].position;
+      var x = mat[0]*pos[0] + mat[4]*pos[1] + mat[8]*pos[2];
+      var y = mat[1]*pos[0] + mat[5]*pos[1] + mat[9]*pos[2];
+      x=Math.floor(width*0.5+x*width*0.5);
+      y=Math.floor(height*0.5+y*height*0.5);
+      if(x>=0&&x<width&&y>=0&&y<height) {
+        p[x*height+y]+=1.0;
+      }
+    }
+    //Trick to shift the frequency domain to the center of the image
+    for(var r=1,i=0;i<width;i++,r=-r) for(var s=1,j=0;j<height;j++,s=-s)  p[i+j*width]=p[i+j*width]*s*r;
+    FFT.fft2d(p,im);
+//    for(var i=0;i<width*height;i++) p[i]=Math.log(p[i]*p[i]+im[i]*im[i]);
+    for(var i=0;i<width*height;i++) p[i]=Math.sqrt(p[i]*p[i]+im[i]*im[i]);
+    for(var i=0;i<width*height;i++) p[i]=4.0*p[i]/part.length;
+    var idata = fftCtx.createImageData(width,height);
+    var proj=idata.data;
+    for(var i=0;i<width*height;i++) {
+      if(p[i]>=0.99)p[i]=0.99;
+      proj[i*4+0]=255-p[i]*255;
+      proj[i*4+1]=255-p[i]*255;
+      proj[i*4+2]=255-p[i]*255;
+      proj[i*4+3]=255;
+    }
+    fftCtx.putImageData(idata,0,0);
+  }
+
+  var fftTexture = {};
+  function makeFFTTexture(part){
+    makeFFTCanvas(256,256);
+    drawFFTCanvas(256,256,part);
+    fftTexture=gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D,fftTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, fftCtx.canvas);
+    gl.generateMipmap(gl.TEXTURE_2D);
+  }
+
+  function drawFFT(part){
+    if(!parameters.get("drawFFT")) return;
+    if(!shapes["TEXT"]) {if(debug) console.info("ERROR Could not find shape TEXT."); return; }
+
+    makeFFTTexture(part);
+
+    mvPushMatrix();
+    mat4.translate(mvMatrix, [1.0-2.0*fftCtx.canvas.width/gl.canvas.width,1.0,100.0]);
+    mat4.scale(mvMatrix,[2.0*fftCtx.canvas.width/gl.canvas.width,2.0*fftCtx.canvas.height/gl.canvas.height,1.0]);
+
+    gl.bindTexture(gl.TEXTURE_2D, fftTexture);
+    gl.uniform1i(shaderPrograms[currentShaderProgram].textureUniform, fftTexture);
+
+    setMatrixUniforms();
+    setBuffers("TEXT");
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.drawElements(gl.TRIANGLES, shapes["TEXT"].indices.numItems, gl.UNSIGNED_SHORT, 0);
+    gl.disable(gl.BLEND);
+    mvPopMatrix();
+  }
+  //<---- FFT
+
+
   // Puts text on a canvas.
   var textCtx = document.createElement("canvas").getContext("2d");
   function makeTextCanvas(text, width, height) {
@@ -410,7 +507,7 @@ function viscol_core(myCanvas,onChange){
     var cf=parameters.get("currentFrame");
     if(!frames[cf]) return false;
     if(typeof parameters.get("getVisibilityCallback") === "function") {
-      return parameters.get("getVisibilityCallback")(i,frames[cf].particles[i],cf);
+      return parameters.get("getVisibilityCallback")(i,frames[cf].particles[i]);
     } else return true;
   }
 
@@ -484,6 +581,12 @@ function viscol_core(myCanvas,onChange){
         setShaderProgram("text");
         mat4.ortho(-1.0,1.0,-1.0,1.0,-100, 100.0, pMatrix);
         drawText('');
+
+        //Draw FFT scattering image
+        mat4.identity(mvMatrix);
+        setShaderProgram("text");
+        mat4.ortho(-1.0,1.0,-1.0,1.0,-100, 100.0, pMatrix);
+        drawFFT(part);
       }
     } else { 
       //For the loading text
@@ -491,7 +594,7 @@ function viscol_core(myCanvas,onChange){
       setShaderProgram("text");
       mat4.ortho(-1.0,1.0,-1.0,1.0,-100, 100.0, pMatrix);
       drawText(parameters.get("loadText"));
-    }   
+    }
   }
 
   var pickerFramebuffer = null;
@@ -766,7 +869,7 @@ function viscol(myCanvas,type,callback){
       return part.color;
   }
 
-  function isVisible(i,part,cf){
+  function isVisible(i,part){
     while(visible.length <= i) visible.push(true);
 
     if(i==0) return visible[0]; //always show the bounding box
@@ -786,7 +889,7 @@ function viscol(myCanvas,type,callback){
     var cf= viscol.parameters.get("currentFrame");
     if(!viscol.frames[cf]) return;
     for(var i=0;i<viscol.frames[cf].particles.length;i++){
-      visible[i] =  isVisible(i,viscol.frames[cf].particles[i],cf);
+      visible[i] =  isVisible(i,viscol.frames[cf].particles[i]);
     }
     parameters.set({slice:false});
   }
@@ -1309,6 +1412,7 @@ function viscol(myCanvas,type,callback){
       keybindings.push(new keybinding([76,16],unhideAll, [],'(L) Unhide all particles'));
       keybindings.push(new keybinding([83,16],unselectAll,[],'(S) Deselect all particles.'));
       keybindings.push(new keybinding([72,16],unhideAll, [],'(H) Unhide all.'));
+      keybindings.push(new keybinding([84,16],toggleDrawFFT, [],'(T) Toggle drawing of the FFT.'));
       keybindings.push(new keybinding([73],invertSelection, [],'(i) Invert selection.'));
       keybindings.push(new keybinding([90],hideHalf, [],'(z) Hide the particles closest to the camera.'));
       keybindings.push(new keybinding([72],hideSelected, [],'(h) Hide selected.'));
@@ -1411,6 +1515,14 @@ function viscol(myCanvas,type,callback){
     }
   }
 
+  function toggleDrawFFT(val) {
+    console.info("FFT?");
+    if(arguments.length==1)
+      viscol.parameters.set({drawFFT:val});
+    else 
+      viscol.parameters.set({drawFFT:!viscol.parameters.get("drawFFT")});
+  }
+   
   function toggleDrawFPS(val) {
     if(arguments.length==1)
       viscol.parameters.set({drawFPS:val});
@@ -1586,6 +1698,7 @@ function viscol(myCanvas,type,callback){
     setPlayDelay:setPlayDelay,
     toggleFrameTitle:toggleFrameTitle,
     toggleDrawFPS:toggleDrawFPS,
+    toggleDrawFFT:toggleDrawFFT,
     zoomIn:zoomIn,
     rotate90:rotate90,
     resetView:resetView,
@@ -2303,7 +2416,6 @@ var myShapes =  function(lod){
 
     return new vshape(name,vertexPositionData,normalData,indexData);
   }
-
 
   function initSphere() {
     var latitudeBands = lod*2;

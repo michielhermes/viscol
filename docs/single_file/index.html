@@ -26,6 +26,9 @@ Draw bounding box:
 Rotate:
 <input type="checkbox" id="rotate"><br>
 
+Show FFT:
+<input type="checkbox" id="showfft"><br>
+
 Coordinate file:
 <input id="file" type="file" name="file"><br>
 <br>
@@ -57,6 +60,8 @@ function genHtml(){
   if(!document.getElementById("rotate").checked) speed=0.0;
   html = html.replace("SEARCH_REPLACE_GL_MATRIX",glmatrix.value);
   html = html.replace("SEARCH_REPLACE_VISCOL",viscol.value);
+  html = html.replace("SEARCH_REPLACE_FFT",fft.value);
+  html = html.replace("SEARCH_REPLACE_FFT2",document.getElementById("showfft").checked);
   html = html.replace("SEARCH_REPLACE_DESCRIPTION",description);
   html = html.replace(/SEARCH\_REPLACE\_TITLE/g,title);
   html = html.replace("SEARCH_REPLACE_DB",drawBox);
@@ -78,6 +83,7 @@ function genHtml(){
 var htmldata={value:0};
 var glmatrix={value:0};
 var viscol={value:0};
+var fft={value:0};
 
 function loadInputHtml(varname,filename){
   xhr = new XMLHttpRequest();
@@ -96,6 +102,7 @@ function loadInputHtml(varname,filename){
 function start(){
   loadInputHtml(htmldata,'input.html');
   loadInputHtml(viscol,'../viscol.js');
+  loadInputHtml(fft,'../external/fft.js');
   loadInputHtml(glmatrix,'../external/gl-matrix.js');
 }
 </script>
