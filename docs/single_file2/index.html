@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Single html file generation</title>
+
+  <!-- Bootstrap -->
+  <link href="../viewer/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<script type="text/javascript">
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
+function editHtml(html){
+  var title = document.getElementById("title").value;
+  var description = document.getElementById("description").value;
+  var drawBox = document.getElementById("drawBox").checked;
+  var drawFFT = document.getElementById("showfft").checked;
+  var peel = document.getElementById("peel").checked;
+
+  html = html.replace(/SEARCH\_REPLACE\_TITLE/g,title);
+  html = html.replace("SEARCH_REPLACE_DESCRIPTION",description);
+  html = html.replace(/toggleDrawBox\([^()]*\)/,"toggleDrawBox("+drawBox+")");
+  html = html.replace(/toggleDrawFFT\([^()]*\)/,"toggleDrawFFT("+drawFFT+")");
+  html = html.replace(/peel=[^;]*/,"peel="+peel);
+
+  return html;
+}
+
+function makeStandAlone(html){
+  html = html.replace(/\<script.*gl-matrix\.js.*script\>/g,"<script type=\"text/javascript\">"+glmatrix.value+"<\/script>");
+  html = html.replace(/\<script.*fft\.js.*script\>/g,"<script type=\"text/javascript\">"+fft.value+"<\/script>");
+  html = html.replace(/\<script.*viscol\.js.*script\>/g,"<script type=\"text/javascript\">"+viscol.value+"<\/script>");
+  return html;
+}
+
+function loadHtml(){
+  var iframe=document.getElementById("webglframe");
+  var file = document.getElementById("file").files[0];
+  var title = document.getElementById("title").value;
+  var html=htmldata.value;
+  if(!file) {console.info("No file selected.");return;}
+
+  html = editHtml(html);
+  html = saveView(html);
+  html = makeStandAlone(html);
+ 
+  var reader = new FileReader();
+  reader.file=file;
+  reader.onload = (function(theFile) {
+    return function(e){
+      html = html.replace("SEARCH_REPLACE_DATA",e.target.result);
+      html = html.replace("SEARCH_REPLACE_NAME",theFile.name);
+      iframe.contentWindow.document.open();
+      iframe.contentWindow.document.write(html);
+      iframe.contentWindow.document.close();
+    }
+  })(file);
+  reader.readAsText(file);
+}
+
+function genHtml(){
+  var file = document.getElementById("file").files[0];
+  var title = document.getElementById("title").value;
+  var html=htmldata.value;
+  if(!file) {console.info("No file selected.");return;}
+
+  html = editHtml(html);
+  html = saveView(html);
+  html = makeStandAlone(html);
+ 
+  var reader = new FileReader();
+  reader.file=file;
+  reader.onload = (function(theFile) {
+    return function(e){
+      html = html.replace("SEARCH_REPLACE_DATA",e.target.result);
+      html = html.replace("SEARCH_REPLACE_NAME",theFile.name);
+      download(title+".html",html);
+    }
+  })(file);
+  reader.readAsText(file);
+}
+
+var htmldata={value:0};
+var glmatrix={value:0};
+var viscol={value:0};
+var fft={value:0};
+
+function loadInputHtml(varname,filename){
+  xhr = new XMLHttpRequest();
+  xhr.overrideMimeType("text/plain"); //to stop de default xml parser                                                                                                                                   
+  xhr.onerror = function () {alert('ERROR: Could not load file: '+filename);}
+  xhr.onload = function () {
+    if(this.responseText != null) {
+      varname.value=this.responseText;
+      console.info("Loaded "+filename+".");
+    } else alert('ERROR: Could not load file: '+filename);
+  }
+  xhr.open("GET", filename, true);
+  xhr.send();
+}
+
+function start(){
+  loadInputHtml(htmldata,'input.html');
+  loadInputHtml(viscol,'../viscol.js');
+  loadInputHtml(fft,'../external/fft.js');
+  loadInputHtml(glmatrix,'../external/gl-matrix.js');
+}
+
+function saveView(html){
+  var iframe=document.getElementById("webglframe");
+  if(iframe && iframe.contentWindow.viewer) {
+    var view = iframe.contentWindow.viewer.getView();
+    html = html.replace(/viewer\.setView\([^()]*\)/,"viewer\.setView("+JSON.stringify(view)+")");
+    return html;
+  }
+  return html;
+}
+
+</script>
+
+
+<body onload="start();">
+<div class="row">
+  <div class="col-sm-6">
+<!--=========================================================================-->
+<h2 class=page-header>Single html file generation</h2>
+<p>
+Title: <input id="title" type="text" name="title" value="Title"><br>
+
+Description: <br>
+<textarea id="description" name="description" rows="5" cols="80">
+Description to appear in the html file.
+</textarea><br>
+
+Draw bounding box:
+<input type="checkbox" id="drawBox"><br>
+
+Show FFT:
+<input type="checkbox" id="showfft"><br>
+
+Sliders removes outer layers or slices:
+<input type="checkbox" id="peel"><br>
+
+Coordinate file:
+<input id="file" type="file" name="file"><br>
+<br>
+
+<button onclick="loadHtml()">
+   Load html </button>
+
+<br>
+<button onclick="genHtml()">
+   Download html file.</button>
+
+<!--=========================================================================-->
+  </div>
+
+  <div class="col-sm-6">
+<!--=========================================================================-->
+  <iframe id="webglframe" src="" width="600" height="800"></iframe> 
+<!--=========================================================================-->
+  </div> 
+</div>
+
+<!--=========================================================================-->
+  <!-- Bootstrap stuff -->
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="../external/jquery.min.js"></script>
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="../viewer/js/bootstrap.min.js"></script>
+</body>
+
+</html>
