@@ -334,10 +334,6 @@ function viscol_core(myCanvas,onChange){
     return fftCtx.canvas;
   }
 
-  function sqr(a){
-    return a*a;
-  }
-
   function drawFFTCanvas(width,height,part){
     var mat=parameters.get("sceneRotationMatrix");
     var zoom=parameters.get("zoom");
@@ -359,9 +355,8 @@ function viscol_core(myCanvas,onChange){
     //Trick to shift the frequency domain to the center of the image
     for(var r=1,i=0;i<width;i++,r=-r) for(var s=1,j=0;j<height;j++,s=-s)  p[i+j*width]=p[i+j*width]*s*r;
     FFT.fft2d(p,im);
-//    for(var i=0;i<width*height;i++) p[i]=Math.log(p[i]*p[i]+im[i]*im[i]);
-    for(var i=0;i<width*height;i++) p[i]=Math.sqrt(p[i]*p[i]+im[i]*im[i]);
-    for(var i=0;i<width*height;i++) p[i]=4.0*p[i]/part.length;
+    for(var i=0;i<width*height;i++) p[i]=Math.sqrt(p[i]*p[i]+im[i]*im[i]); //absolute value
+    for(var i=0;i<width*height;i++) p[i]=6.0*p[i]/part.length;  //normalize with the number of particles 
     var idata = fftCtx.createImageData(width,height);
     var proj=idata.data;
     for(var i=0;i<width*height;i++) {
@@ -385,14 +380,17 @@ function viscol_core(myCanvas,onChange){
   }
 
   function drawFFT(part){
+    if(typeof FFT == 'undefined') return;
     if(!parameters.get("drawFFT")) return;
     if(!shapes["TEXT"]) {if(debug) console.info("ERROR Could not find shape TEXT."); return; }
 
     makeFFTTexture(part);
 
     mvPushMatrix();
-    mat4.translate(mvMatrix, [1.0-2.0*fftCtx.canvas.width/gl.canvas.width,1.0,100.0]);
-    mat4.scale(mvMatrix,[2.0*fftCtx.canvas.width/gl.canvas.width,2.0*fftCtx.canvas.height/gl.canvas.height,1.0]);
+    var fftwidth=Math.min(FFTSIZE,0.3*gl.canvas.width);
+    var fftheight=fftwidth;
+    mat4.translate(mvMatrix, [1.0-2.0*fftwidth/gl.canvas.width,1.0,100.0]);
+    mat4.scale(mvMatrix,[2.0*fftwidth/gl.canvas.width,2.0*fftheight/gl.canvas.height,1.0]);
 
     gl.bindTexture(gl.TEXTURE_2D, fftTexture);
     gl.uniform1i(shaderPrograms[currentShaderProgram].textureUniform, fftTexture);
@@ -1508,7 +1506,6 @@ function viscol(myCanvas,type,callback){
   }
 
   function toggleDrawFFT(val) {
-    console.info("FFT?");
     if(arguments.length==1)
       viscol.parameters.set({drawFFT:val});
     else 
@@ -1673,6 +1670,28 @@ function viscol(myCanvas,type,callback){
     viscol.clearCurrentFrame();
   }
 
+  function getView(){
+    var view={};
+    view.matrix=viscol.parameters.get("sceneRotationMatrix");
+    view.zoom=viscol.parameters.get("zoom");
+    view.speed=[parameters.get("xspeed"),parameters.get("yspeed")];
+    view.hideR=parameters.get("hideR");
+    view.hideLayers=parameters.get("hideLayers");
+    view.sliceDepth=parameters.get("sliceDepth");
+    view.slice=parameters.get("slice");
+    return view;
+  }
+
+  function setView(view){
+    if(view.matrix) viscol.parameters.set({sceneRotationMatrix:view.matrix});
+    if(view.zoom)   viscol.parameters.set({zoom:view.zoom});
+    if(view.speed)  parameters.set({xspeed:view.speed[0],yspeed:view.speed[1]});
+    if(view.hideR)  parameters.set({hideR:view.hideR});
+    if(view.hideLayers) parameters.set({hideLayers:view.hideLayers});
+    if(view.sliceDepth) parameters.set({sliceDepth:view.sliceDepth});
+    if(view.slice)      parameters.set({slice:view.slice});
+  }
+
   bind();
   return {
     clearAllFrames:clearAllFrames,
@@ -1714,6 +1733,9 @@ function viscol(myCanvas,type,callback){
     captureMoviePlay:captureMoviePlay,
     capturePng:capturePng,
     colorTable:colorTable,
+
+    getView:getView,
+    setView:setView,
   };
 
 }; //END interface
