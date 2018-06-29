@@ -138,25 +138,31 @@ function saveView(html){
 <!--=========================================================================-->
 <h2 class=page-header>Single html file generation</h2>
 <p>
-Title: <input id="title" type="text" name="title" value="Title"><br>
+<div class="form-group">
+<label> Title:</label> <input id="title" type="text" name="title" value="Title"><br>
+</div>
 
-Description: <br>
+<div class="form-group">
+  <label>Description: </label><br>
 <textarea id="description" name="description" rows="5" cols="80">
 Description to appear in the html file.
-</textarea><br>
+</textarea></div>
 
-Draw bounding box:
-<input type="checkbox" id="drawBox"><br>
 
-Show FFT:
-<input type="checkbox" id="showfft"><br>
+<div class="checkbox">
+  <label><input type="checkbox" id="drawBox">Draw bounding box</label>
+</div>
+<div class="checkbox">
+  <label><input type="checkbox" id="showfft">Show scattering plot</label>
+</div>
+<div class="checkbox">
+  <label><input type="checkbox" id="peel">The slider removes the outer layers</label>
+</div> 
 
-Sliders removes outer layers or slices:
-<input type="checkbox" id="peel"><br>
-
-Coordinate file:
+<div class="form-group">
+<label>Coordinate file:</label>
 <input id="file" type="file" name="file"><br>
-<br>
+</div>
 
 <button onclick="loadHtml()">
    Load html </button>
