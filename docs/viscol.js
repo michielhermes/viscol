@@ -334,6 +334,70 @@ function viscol_core(myCanvas,onChange){
     return fftCtx.canvas;
   }
 
+  function drawFFTCanvasColor(width,height,part){
+    var mat=parameters.get("sceneRotationMatrix");
+    var zoom=parameters.get("zoom");
+    var pr = new Float32Array(width*height);
+    var imr = new Float32Array(width*height);
+    var pg = new Float32Array(width*height);
+    var img = new Float32Array(width*height);
+    var pb = new Float32Array(width*height);
+    var imb = new Float32Array(width*height);
+    for(var i=0;i<width*height;i++) {
+      pr[i]=0;
+      pg[i]=0;
+      pb[i]=0;
+      imr[i]=0;
+      img[i]=0;
+      imb[i]=0;
+    }
+    for(var i=1;i<part.length;i++) if(showParticle(i)) {
+      //project coordinates on the plane
+      var pos = part[i].position;
+      var col = part[i].color;
+      var x = mat[0]*pos[0]*zoom + mat[4]*pos[1]*zoom + mat[8]*pos[2]*zoom;
+      var y = mat[1]*pos[0]*zoom + mat[5]*pos[1]*zoom + mat[9]*pos[2]*zoom;
+      x=Math.floor(width*0.5+x*width*0.5);
+      y=Math.floor(height*0.5+y*height*0.5);
+      if(x>=0&&x<width&&y>=0&&y<height) {
+        pr[x*height+y]+=1.0-col[0];
+        pg[x*height+y]+=1.0-col[1];
+        pb[x*height+y]+=1.0-col[2];
+      }
+    }
+    //Trick to shift the frequency domain to the center of the image
+    for(var r=1,i=0;i<width;i++,r=-r) for(var s=1,j=0;j<height;j++,s=-s)  {
+      pr[i+j*width]=pr[i+j*width]*s*r;
+      pg[i+j*width]=pg[i+j*width]*s*r;
+      pb[i+j*width]=pb[i+j*width]*s*r;
+    }
+    FFT.fft2d(pr,imr);
+    FFT.fft2d(pg,img);
+    FFT.fft2d(pb,imb);
+    for(var i=0;i<width*height;i++) {
+      pr[i]=Math.sqrt(pr[i]*pr[i]+imr[i]*imr[i]); //absolute value
+      pg[i]=Math.sqrt(pg[i]*pg[i]+img[i]*img[i]); //absolute value
+      pb[i]=Math.sqrt(pb[i]*pb[i]+imb[i]*imb[i]); //absolute value
+    }  
+    for(var i=0;i<width*height;i++) {
+      pr[i]=6.0*pr[i]/part.length;  //normalize with the number of particles 
+      pg[i]=6.0*pg[i]/part.length;  //normalize with the number of particles 
+      pb[i]=6.0*pb[i]/part.length;  //normalize with the number of particles 
+    }  
+    var idata = fftCtx.createImageData(width,height);
+    var proj=idata.data;
+    for(var i=0;i<width*height;i++) {
+      if(pr[i]>=0.99)pr[i]=0.99;
+      if(pg[i]>=0.99)pg[i]=0.99;
+      if(pb[i]>=0.99)pb[i]=0.99;
+      proj[i*4+0]=255-pr[i]*255;
+      proj[i*4+1]=255-pg[i]*255;
+      proj[i*4+2]=255-pb[i]*255;
+      proj[i*4+3]=255;
+    }
+    fftCtx.putImageData(idata,0,0);
+  }
+
   function drawFFTCanvas(width,height,part){
     var mat=parameters.get("sceneRotationMatrix");
     var zoom=parameters.get("zoom");
@@ -372,7 +436,7 @@ function viscol_core(myCanvas,onChange){
   var fftTexture = {};
   function makeFFTTexture(part){
     makeFFTCanvas(FFTSIZE,FFTSIZE);
-    drawFFTCanvas(FFTSIZE,FFTSIZE,part);
+    drawFFTCanvasColor(FFTSIZE,FFTSIZE,part);
     fftTexture=gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D,fftTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, fftCtx.canvas);
@@ -2031,11 +2095,11 @@ var myShapes =  function(lod){
     if(s>1) s=1.0;
     if(s==1) { //in case of perfect cubes
       for(var i=0;i<shapes.length;i++) if(shapes[i].name=='cube') 
-        shapes.push(new vshape(name,shapes[i].positions,shapes[i].normals,shapes[i].indices))
+        return new vshape(name,shapes[i].positions,shapes[i].normals,shapes[i].indices);
     }
     if(s==0) { //in case of perfect spheres
       for(var i=0;i<shapes.length;i++) if(shapes[i].name=='sphere')
-        shapes.push(new vshape(name,shapes[i].positions,shapes[i].normals,shapes[i].indices))
+        return new vshape(name,shapes[i].positions,shapes[i].normals,shapes[i].indices);
     }
     var vertexPositionData = [];
     var normalData = [];
@@ -2141,19 +2205,20 @@ var myShapes =  function(lod){
     if(a.length >=2){
       var t1 = parseFloat(a[0]); //rounded 
       var t2 = parseFloat(a[1]); //thickness
-      if(t1) s = t1;
-      if(t2) t = t2;
+      if(t1 != undefined) s = t1;
+      if(t2 != undefined) t = t2;
     }
 
     if(s<0) s=0.0;
     if(s>1) s=1.0;
+
     if(s==1) { //in case of perfect cubes
       for(var i=0;i<shapes.length;i++) if(shapes[i].name=='cylinder') 
-        shapes.push(new vshape(name,shapes[i].positions,shapes[i].normals,shapes[i].indices))
+        return new vshape(name,shapes[i].positions,shapes[i].normals,shapes[i].indices);
     }
     if(s==0) { //in case of perfect spheres
       for(var i=0;i<shapes.length;i++) if(shapes[i].name=='sphere')
-        shapes.push(new vshape(name,shapes[i].positions,shapes[i].normals,shapes[i].indices))
+        return new vshape(name,shapes[i].positions,shapes[i].normals,shapes[i].indices);
     }
 
     var llod = lod*4;
