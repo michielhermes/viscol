@@ -50,6 +50,7 @@ function loadHtml(){
   var iframe=document.getElementById("webglframe");
   var file = document.getElementById("file").files[0];
   var title = document.getElementById("title").value;
+  var title2 = title;
   var html=htmldata.value;
   if(!file) {console.info("No file selected.");return;}
 
@@ -62,7 +63,8 @@ function loadHtml(){
   reader.onload = (function(theFile) {
     return function(e){
       html = html.replace("SEARCH_REPLACE_DATA",e.target.result);
-      html = html.replace("SEARCH_REPLACE_NAME",theFile.name);
+      html = html.replace("SEARCH_REPLACE_NAME",title2);
+      html = html.replace("SEARCH_REPLACE_FIXED","full");
       iframe.contentWindow.document.open();
       iframe.contentWindow.document.write(html);
       iframe.contentWindow.document.close();
@@ -74,6 +76,7 @@ function loadHtml(){
 function genHtml(){
   var file = document.getElementById("file").files[0];
   var title = document.getElementById("title").value;
+  var title2 = title;
   var html=htmldata.value;
   if(!file) {console.info("No file selected.");return;}
 
@@ -86,7 +89,8 @@ function genHtml(){
   reader.onload = (function(theFile) {
     return function(e){
       html = html.replace("SEARCH_REPLACE_DATA",e.target.result);
-      html = html.replace("SEARCH_REPLACE_NAME",theFile.name);
+      html = html.replace("SEARCH_REPLACE_NAME",title2);
+      html = html.replace("SEARCH_REPLACE_FIXED","fixed");
       download(title+".html",html);
     }
   })(file);
@@ -113,8 +117,8 @@ function loadInputHtml(varname,filename){
 }
 
 function start(){
-  loadInputHtml(htmldata,'input.html');
-  loadInputHtml(viscol,'../viscol.js');
+  loadInputHtml(htmldata,'input.html?reload');
+  loadInputHtml(viscol,'../viscol.js?reload');
   loadInputHtml(fft,'../external/fft.js');
   loadInputHtml(glmatrix,'../external/gl-matrix.js');
 }

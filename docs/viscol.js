@@ -351,7 +351,7 @@ function viscol_core(myCanvas,onChange){
       img[i]=0;
       imb[i]=0;
     }
-    for(var i=1;i<part.length;i++) if(showParticle(i)) {
+    for(var i=1;i<part.length;i++) { //if(showParticle(i)) {
       //project coordinates on the plane
       var pos = part[i].position;
       var col = part[i].color;
@@ -405,7 +405,7 @@ function viscol_core(myCanvas,onChange){
     var im = new Float32Array(width*height);
     for(var i=0;i<width*height;i++) p[i]=0;
     for(var i=0;i<width*height;i++) im[i]=0;
-    for(var i=1;i<part.length;i++) if(showParticle(i)) {
+    for(var i=1;i<part.length;i++) { //if(showParticle(i)) {
       //project coordinates on the plane
       var pos = part[i].position;
       var x = mat[0]*pos[0]*zoom + mat[4]*pos[1]*zoom + mat[8]*pos[2]*zoom;
@@ -630,17 +630,17 @@ function viscol_core(myCanvas,onChange){
         }
       }
       if(!selecting) { 
-        //For the text
-        mat4.identity(mvMatrix);
-        setShaderProgram("text");
-        mat4.ortho(-1.0,1.0,-1.0,1.0,-100, 100.0, pMatrix);
-        drawText('');
-
         //Draw FFT scattering image
         mat4.identity(mvMatrix);
         setShaderProgram("text");
         mat4.ortho(-1.0,1.0,-1.0,1.0,-100, 100.0, pMatrix);
         drawFFT(part);
+
+        //For the text
+        mat4.identity(mvMatrix);
+        setShaderProgram("text");
+        mat4.ortho(-1.0,1.0,-1.0,1.0,-100, 100.0, pMatrix);
+        drawText('');
       }
     } else { 
       //For the loading text
@@ -1738,6 +1738,8 @@ function viscol(myCanvas,type,callback){
     var view={};
     view.matrix=viscol.parameters.get("sceneRotationMatrix");
     view.zoom=viscol.parameters.get("zoom");
+    view.drawFFT=viscol.parameters.get("drawFFT");
+    view.drawFrameTitle=viscol.parameters.get("drawFrameTitle");
     view.speed=[parameters.get("xspeed"),parameters.get("yspeed")];
     view.hideR=parameters.get("hideR");
     view.hideLayers=parameters.get("hideLayers");
@@ -1749,6 +1751,8 @@ function viscol(myCanvas,type,callback){
   function setView(view){
     if(view.matrix) viscol.parameters.set({sceneRotationMatrix:view.matrix});
     if(view.zoom)   viscol.parameters.set({zoom:view.zoom});
+    if(view.drawFFT) viscol.parameters.set({drawFFT:view.drawFFT});
+    if(view.drawFrameTitle) viscol.parameters.set({drawFrameTitle:view.drawFrameTitle});
     if(view.speed)  parameters.set({xspeed:view.speed[0],yspeed:view.speed[1]});
     if(view.hideR)  parameters.set({hideR:view.hideR});
     if(view.hideLayers) parameters.set({hideLayers:view.hideLayers});
